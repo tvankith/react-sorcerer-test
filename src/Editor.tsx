@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Editor, EditorState, Modifier, RichUtils, getDefaultKeyBinding } from 'draft-js';
+import React, { useEffect, useState } from 'react';
+import { Editor, EditorState, Modifier, RichUtils, getDefaultKeyBinding, convertFromRaw, convertToRaw } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import "./Editor.css";
 
@@ -86,6 +86,26 @@ const CustomEditor = () => {
         return getDefaultKeyBinding(e);
     };
 
+    const saveData = () => {
+        const contentState = editorState.getCurrentContent();
+        const contentStateJSON = JSON.stringify(convertToRaw(contentState));
+        localStorage.setItem('draftjs_content', contentStateJSON);
+      };
+    
+      const loadData = (savedData: string) => {
+        if (savedData) {
+          const rawContentState = JSON.parse(savedData);
+          const contentState = convertFromRaw(rawContentState);
+          setEditorState(EditorState.createWithContent(contentState));
+        }
+      };
+
+      useEffect(()=> {
+        const savedData = localStorage.getItem('draftjs_content');
+        if(savedData)
+            loadData(savedData)
+      },[])
+
     return (
         <div className='editor-container'>
             <Editor
@@ -96,9 +116,7 @@ const CustomEditor = () => {
                 keyBindingFn={keyBindingFn}
             />
             <button
-                onClick={() => {
-                    // 
-                }}
+                onClick={saveData}
             >Save</button>
         </div>
     );
