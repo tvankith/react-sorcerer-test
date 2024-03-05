@@ -7,7 +7,14 @@ const colorStyleMap = {
     red: {
         color: 'rgba(255, 0, 0, 1.0)',
     },
+    code: {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
+        fontSize: 16,
+        padding: 2,
+    }
 }
+
 const CustomEditor = () => {
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
 
@@ -83,6 +90,16 @@ const CustomEditor = () => {
             ))
             return 'handled'
         }
+        if (command === "set-highlighted-code") {
+            editorState = removeCharacter(editorState, "```")
+            editorState = reset(editorState)
+            console.log("here")
+            handleChange(RichUtils.toggleInlineStyle(
+                editorState,
+                'code'
+            ))
+            return 'handled'
+        }
 
         return 'not-handled';
     };
@@ -103,7 +120,7 @@ const CustomEditor = () => {
     }
 
     const keyBindingFn = (e) => {
-        if (e.keyCode === 32) { // Space key
+        if (e.keyCode === 32) {
             const selection = editorState.getSelection();
             const contentState = editorState.getCurrentContent();
             const block = contentState.getBlockForKey(selection.getStartKey());
@@ -118,6 +135,8 @@ const CustomEditor = () => {
                 return 'set-redline';
             } else if (blockText === '***') {
                 return 'set-underline';
+            } else if (blockText === '```') {
+                return 'set-highlighted-code';
             }
         }
         return getDefaultKeyBinding(e);
