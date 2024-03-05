@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, SyntheticKeyboardEvent } from 'react';
 import { Editor, EditorState, Modifier, RichUtils, getDefaultKeyBinding, convertFromRaw, convertToRaw } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import "./Editor.css";
@@ -17,7 +17,7 @@ const colorStyleMap = {
 
 const CustomEditor = () => {
     const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
-
+    const [loading, setLoading] = useState(false);
     const handleChange = (newEditorState: EditorState) => {
         setEditorState(newEditorState);
     };
@@ -34,19 +34,19 @@ const CustomEditor = () => {
             return editorState
         }
         const currentStyle = editorState.getCurrentInlineStyle();
-        if(currentStyle.has('BOLD')) {
+        if (currentStyle.has('BOLD')) {
             editorState = RichUtils.toggleInlineStyle(editorState, 'BOLD');
             return editorState
         }
-        if(currentStyle.has('UNDERLINE')) {
+        if (currentStyle.has('UNDERLINE')) {
             editorState = RichUtils.toggleInlineStyle(editorState, 'UNDERLINE');
             return editorState
         }
-        if(currentStyle.has('red')) {
+        if (currentStyle.has('red')) {
             editorState = RichUtils.toggleInlineStyle(editorState, 'red');
             return editorState
         }
-        if(currentStyle.has('code')) {
+        if (currentStyle.has('code')) {
             editorState = RichUtils.toggleInlineStyle(editorState, 'code');
             return editorState
         }
@@ -122,7 +122,7 @@ const CustomEditor = () => {
         return newEditorStateWithRemovedChar
     }
 
-    const keyBindingFn = (e) => {
+    const keyBindingFn = (e: SyntheticKeyboardEvent) => {
         if (e.keyCode === 32) {
             const selection = editorState.getSelection();
             const contentState = editorState.getCurrentContent();
@@ -149,6 +149,10 @@ const CustomEditor = () => {
         const contentState = editorState.getCurrentContent();
         const contentStateJSON = JSON.stringify(convertToRaw(contentState));
         localStorage.setItem('draftjs_content', contentStateJSON);
+        setLoading(true);
+        setTimeout(()=>{
+            setLoading(false);
+        }, 1000)
     };
 
     const loadData = (savedData: string) => {
@@ -166,17 +170,21 @@ const CustomEditor = () => {
     }, [])
 
     return (
-        <div className='editor-container'>
-            <Editor
-                customStyleMap={colorStyleMap}
-                editorState={editorState}
-                onChange={handleChange}
-                handleKeyCommand={handleKeyCommand}
-                keyBindingFn={keyBindingFn}
-            />
-            <button
-                onClick={saveData}
-            >Save</button>
+        <div className="container">
+            <div className='header'>
+                <h1 className="project-title">Demo editor by Ankith T V</h1>
+                <button className={`save action-button ${loading ? 'loading' : ''}`} onClick={saveData}>
+                    {loading ? <span className="loader"></span>: "Save"}</button>
+            </div>
+            <div className='editor-container'>
+                <Editor
+                    customStyleMap={colorStyleMap}
+                    editorState={editorState}
+                    onChange={handleChange}
+                    handleKeyCommand={handleKeyCommand}
+                    keyBindingFn={keyBindingFn}
+                />
+            </div>
         </div>
     );
 };
