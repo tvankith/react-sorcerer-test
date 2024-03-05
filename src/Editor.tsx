@@ -120,9 +120,6 @@ const CustomEditor = () => {
                 return 'set-underline';
             }
         }
-        // if (e.keyCode === 13) {
-        //     return 'insert-new-line'
-        // }
         return getDefaultKeyBinding(e);
     };
 
