@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-reactsorcerer-dev-223515-authRole",
+      "UnauthRoleArn": "arn:aws:iam::471112499832:role/amplify-reactsorcerer-dev-223515-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::471112499832:role/amplify-reactsorcerer-dev-223515-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-reactsorcerer-dev-223515-deployment",
+      "UnauthRoleName": "amplify-reactsorcerer-dev-223515-unauthRole",
+      "StackName": "amplify-reactsorcerer-dev-223515",
+      "StackId": "arn:aws:cloudformation:us-east-1:471112499832:stack/amplify-reactsorcerer-dev-223515/8c790620-db12-11ee-a05e-0e58b44da2c5",
+      "AmplifyAppId": "d39jzewgnsb7s0"
+    },
+    "categories": {
+      "hosting": {
+        "S3AndCloudFront": {}
+      }
+    }
+  }
+}
