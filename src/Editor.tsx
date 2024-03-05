@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Editor, EditorState, Modifier, RichUtils, getDefaultKeyBinding, convertFromRaw, convertToRaw } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import "./Editor.css";
 
 const colorStyleMap = {
     red: {
-      color: 'rgba(255, 0, 0, 1.0)',
+        color: 'rgba(255, 0, 0, 1.0)',
     },
 }
 const CustomEditor = () => {
@@ -14,51 +14,92 @@ const CustomEditor = () => {
     const handleChange = (newEditorState: EditorState) => {
         setEditorState(newEditorState);
     };
+    const reset = (editorState: EditorState) => {
+        const contentState = editorState.getCurrentContent();
+        const selection = editorState.getSelection();
+        const blockKey = contentState.getBlockForKey(selection.getStartKey());
+        const blockType = blockKey.getType();
+        if (selection.isCollapsed() && blockType !== 'unstyled') {
+            editorState = RichUtils.toggleBlockType(
+                editorState,
+                'unstyled'
+            )
+            return editorState
+        }
+        const currentStyle = editorState.getCurrentInlineStyle();
+        if(currentStyle.has('BOLD')) {
+            editorState = RichUtils.toggleInlineStyle(editorState, 'BOLD');
+            return editorState
+        }
+        if(currentStyle.has('UNDERLINE')) {
+            editorState = RichUtils.toggleInlineStyle(editorState, 'UNDERLINE');
+            return editorState
+        }
+        if(currentStyle.has('red')) {
+            editorState = RichUtils.toggleInlineStyle(editorState, 'red');
+            return editorState
+        }
+        return editorState
+    }
 
-    const handleKeyCommand = (command, editorState) => {
-        const newState = RichUtils.handleKeyCommand(editorState, command);
+    const handleKeyCommand = (command: string, editorState: EditorState) => {
 
-        if (newState) {
-            handleChange(newState);
-            return 'handled';
+        if (command === "set-header") {
+            editorState = removeCharacter(editorState, "#")
+            editorState = reset(editorState)
+            handleChange(RichUtils.toggleBlockType(
+                editorState,
+                'header-one'
+            ))
+            return 'handled'
+        }
+        if (command === "set-bold") {
+            editorState = removeCharacter(editorState, "*")
+            editorState = reset(editorState)
+            handleChange(RichUtils.toggleInlineStyle(editorState, 'BOLD'))
+            return 'handled'
+        }
+        if (command === "set-underline") {
+            editorState = removeCharacter(editorState, "***")
+            editorState = reset(editorState)
+            handleChange(RichUtils.toggleInlineStyle(editorState, 'UNDERLINE'))
+            return 'handled'
+        }
+        if (command === "set-redline") {
+            editorState = removeCharacter(editorState, "**")
+            editorState = reset(editorState)
+            // Let's just allow one color at a time. Turn off all active colors.
+            const nextContentState = editorState.getCurrentContent()
+
+            const nextEditorState = EditorState.push(
+                editorState,
+                nextContentState,
+                'change-inline-style'
+            );
+
+            handleChange(RichUtils.toggleInlineStyle(
+                nextEditorState,
+                "red"
+            ))
+            return 'handled'
         }
 
         return 'not-handled';
     };
 
-    const applyColor = (editorState: EditorState) => {
-
-        // Let's just allow one color at a time. Turn off all active colors.
-        const nextContentState = editorState.getCurrentContent()
-
-        let nextEditorState = EditorState.push(
-            editorState,
-            nextContentState,
-            'change-inline-style'
-        );
-
-
-
-        nextEditorState = RichUtils.toggleInlineStyle(
-            nextEditorState,
-            "red"
-        );
-        return nextEditorState
-    }
-
-    const removeCharacter = (newEditorState: EditorState, string: string)=> {
+    const removeCharacter = (newEditorState: EditorState, string: string) => {
         const selectionState = newEditorState.getSelection();
         const contentState = newEditorState.getCurrentContent();
         const newContentState = Modifier.removeRange(
             contentState,
             selectionState.merge({
-              anchorOffset: 0,
-              focusOffset: string.length,
+                anchorOffset: 0,
+                focusOffset: string.length,
             }),
             'backward'
-          );
-          const newEditorStateWithRemovedChar = EditorState.push(editorState, newContentState, 'remove-range');
-          return newEditorStateWithRemovedChar
+        );
+        const newEditorStateWithRemovedChar = EditorState.push(editorState, newContentState, 'remove-range');
+        return newEditorStateWithRemovedChar
     }
 
     const keyBindingFn = (e) => {
@@ -68,21 +109,20 @@ const CustomEditor = () => {
             const block = contentState.getBlockForKey(selection.getStartKey());
             const blockText = block.getText();
 
-            const newEditorState = removeCharacter(editorState, blockText)
             if (blockText === '#') {
-                handleChange(RichUtils.toggleBlockType(
-                    newEditorState,
-                    'header-one'
-                ))
+                return 'set-header';
             }
             else if (blockText === '*') {
-                handleChange(RichUtils.toggleInlineStyle(newEditorState, 'BOLD'))
+                return 'set-bold';
             } else if (blockText === '**') {
-                handleChange(applyColor(newEditorState))
+                return 'set-redline';
             } else if (blockText === '***') {
-                handleChange(RichUtils.toggleInlineStyle(newEditorState, 'UNDERLINE'))
+                return 'set-underline';
             }
         }
+        // if (e.keyCode === 13) {
+        //     return 'insert-new-line'
+        // }
         return getDefaultKeyBinding(e);
     };
 
@@ -90,21 +130,21 @@ const CustomEditor = () => {
         const contentState = editorState.getCurrentContent();
         const contentStateJSON = JSON.stringify(convertToRaw(contentState));
         localStorage.setItem('draftjs_content', contentStateJSON);
-      };
-    
-      const loadData = (savedData: string) => {
-        if (savedData) {
-          const rawContentState = JSON.parse(savedData);
-          const contentState = convertFromRaw(rawContentState);
-          setEditorState(EditorState.createWithContent(contentState));
-        }
-      };
+    };
 
-      useEffect(()=> {
+    const loadData = (savedData: string) => {
+        if (savedData) {
+            const rawContentState = JSON.parse(savedData);
+            const contentState = convertFromRaw(rawContentState);
+            setEditorState(EditorState.createWithContent(contentState));
+        }
+    };
+
+    useEffect(() => {
         const savedData = localStorage.getItem('draftjs_content');
-        if(savedData)
+        if (savedData)
             loadData(savedData)
-      },[])
+    }, [])
 
     return (
         <div className='editor-container'>
