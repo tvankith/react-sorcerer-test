@@ -1,4 +1,4 @@
-import { useEffect, useState, SyntheticKeyboardEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Editor, EditorState, Modifier, RichUtils, getDefaultKeyBinding, convertFromRaw, convertToRaw } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import "./Editor.css";
@@ -122,7 +122,7 @@ const CustomEditor = () => {
         return newEditorStateWithRemovedChar
     }
 
-    const keyBindingFn = (e: SyntheticKeyboardEvent) => {
+    const keyBindingFn = (e:  React.KeyboardEvent) => {
         if (e.keyCode === 32) {
             const selection = editorState.getSelection();
             const contentState = editorState.getCurrentContent();
