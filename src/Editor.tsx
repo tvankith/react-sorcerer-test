@@ -46,6 +46,10 @@ const CustomEditor = () => {
             editorState = RichUtils.toggleInlineStyle(editorState, 'red');
             return editorState
         }
+        if(currentStyle.has('code')) {
+            editorState = RichUtils.toggleInlineStyle(editorState, 'code');
+            return editorState
+        }
         return editorState
     }
 
@@ -93,7 +97,6 @@ const CustomEditor = () => {
         if (command === "set-highlighted-code") {
             editorState = removeCharacter(editorState, "```")
             editorState = reset(editorState)
-            console.log("here")
             handleChange(RichUtils.toggleInlineStyle(
                 editorState,
                 'code'
